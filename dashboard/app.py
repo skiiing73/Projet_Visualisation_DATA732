@@ -576,7 +576,6 @@ def update_map_chart(month):
         z=frame['Frequency'],  # Valeurs pour le coloriage
         colorscale=[
             [0.0, "white"],       # Blanc pour 0
-            [0.00001, "lightblue"],  # Transition douce après 0
             [0.5, "blue"],         # Couleurs intermédiaires
             [1.0, "darkblue"]      # Couleurs élevées
         ],
@@ -620,6 +619,7 @@ def update_graph(pays):
     )
     fig.update_layout(title_x=0.5)
     return fig
+
 # Callback pour gérer l'interaction avec les nœuds (au clic)
 @app.callback(
     [Output('network-graph', 'figure'),
