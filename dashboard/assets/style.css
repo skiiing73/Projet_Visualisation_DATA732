@@ -1,0 +1,82 @@
+/* style.css dans le dossier 'assets' */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #007bff;
+}
+.dash-graph {
+    height: 80%; /* Étendre le contenu */
+}
+
+.dash-dropdown {
+    margin: 20px auto;
+    width: 50%;
+}
+
+
+/* Style pour la div fixe à droite */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    background-color: #343a40;
+    padding: 20px;
+    color: rgb(0, 0, 0);
+    display: flex;
+    flex-direction: column;
+}
+.selection_div{
+    margin-top: 3em;
+}
+.download_div{
+    margin-top: 10em;
+}
+
+
+.sidebar .dash-dropdown {
+    margin: 10px 0;
+    width: 100%;
+    
+}
+
+.sidebar h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.title_div h1{
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+
+/* Style du bouton */
+#download-button {
+    background-color: #007bff; /* Couleur de fond bleu */
+    color: white; /* Texte en blanc */
+    border: none;
+    border-radius: 5px; /* Coins arrondis */
+    padding: 10px 20px; /* Espacement interne */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s; /* Effet de transition pour le survol */
+}
+
+/* Effet au survol */
+#download-button:hover {
+    background-color: #0056b3; /* Changement de couleur au survol */
+    transform: scale(1.05); /* Légère augmentation de la taille */
+}
+
+/* Effet au clic */
+#download-button:active {
+    transform: scale(0.98); /* Réduction de la taille lors du clic */
+}
