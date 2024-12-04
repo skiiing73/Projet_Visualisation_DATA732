@@ -447,10 +447,32 @@ months_name = ["07/22", "08/22", "09/22", "10/22", "11/22", "12/22", "01/23", "0
 app.layout = html.Div([
     # Main section with charts
     html.Div([
-        
+
+          # Dropdown and bar chart for keywords
+        html.Div([
+            html.Div([
+                html.H3("Choisir un pays:"),
+                dcc.Dropdown(
+                    id="pays-dropdown",
+                    options=[
+                        {'label': 'France', 'value': 'France'},
+                        {'label': 'Ukraine', 'value': 'Ukraine'},
+                        {'label': 'Russie', 'value': 'Russie'},
+                        {'label': 'Chine', 'value': 'Chine'},
+                        {'label': 'Algérie', 'value': 'Algérie'},
+                        {'label': 'États-Unis', 'value': 'États-Unis'},
+                        {'label': 'Afrique', 'value': 'Afrique'}
+                    ],
+                    value='France',
+                    clearable=False,
+                    className='pays-dropdown'
+                )
+            ],className='dash-dropdown'),
+
+            dcc.Graph(id="keyword-bar-chart", className='dash-graph')  # Hidden by default
+        ], id="graph1-container"),
         # Geographic chart with a month slider
         html.Div([
-            html.H1("Analyse de la Fréquence des Noms de Pays"),
             dcc.Graph(id="map-chart"),  # Hidden by default
             dcc.Slider(
                 id='month-slider',
@@ -459,32 +481,10 @@ app.layout = html.Div([
                 value=1,
                 step=1
             )
-        ], id="graph1-container"),
-
-        # Dropdown and bar chart for keywords
-        html.Div([
-            html.H1("Analyse des mots les plus utilisés pour un pays"),
-            dcc.Dropdown(
-                id="pays-dropdown",
-                options=[
-                    {'label': 'France', 'value': 'France'},
-                    {'label': 'Ukraine', 'value': 'Ukraine'},
-                    {'label': 'Russie', 'value': 'Russie'},
-                    {'label': 'Chine', 'value': 'Chine'},
-                    {'label': 'Algérie', 'value': 'Algérie'},
-                    {'label': 'États-Unis', 'value': 'États-Unis'},
-                    {'label': 'Afrique', 'value': 'Afrique'}
-                ],
-                value='France',
-                clearable=False,
-                className='dash-dropdown'
-            ),
-            dcc.Graph(id="keyword-bar-chart", className='dash-graph')  # Hidden by default
         ], id="graph2-container"),
 
         # Network graph container
         html.Div([
-            html.H1("Réseau de co-occurrences des localisations au sein des articles"),
             dcc.Graph(
                 id='network-graph',
                 figure=go.Figure(
@@ -502,19 +502,18 @@ app.layout = html.Div([
         
         #Line chart graph
         html.Div([
-            
-            html.H1("Analyse des mots clés dans le temps"),
             dcc.Graph(
                 id='trend-line-chart',
                 figure=px.line(df_keywords_counts_normalized, x='Month', y='Count', color='Keyword',
                             title="Trend des mots les plus utilisés par mois (July 2022 - June 2023)",
-                            markers=True)
+                            markers=True
+                           )
             )
 
         ], id="graph4-container"),
             
         html.Div(id='node-info')
-    ], style={'margin-left': '270px','height':'100vh'}),
+    ],id="main-container"),
     
 
     # Sidebar on the right with a menu to choose charts
@@ -525,20 +524,21 @@ app.layout = html.Div([
         ], className="title_div"),
 
         html.Div([
-            html.H2("Sélection des Graphiques"),
-            dcc.Dropdown(
-                id="graph-dropdown",
+            html.H2("Sélection des Graphiques (max 2)"),
+            dcc.Checklist(
+                id="graph-checklist",
                 options=[
                     {'label': 'Graphique 1', 'value': 'graph1'},
                     {'label': 'Graphique 2', 'value': 'graph2'},
                     {'label': 'Graphique 3', 'value': 'graph3'},
                     {'label': 'Graphique 4', 'value': 'graph4'}
                 ],
-                value='graph1',
-                clearable=False,
-                className='dash-dropdown'
+                value=['graph1'],  # Par défaut, un graphique est sélectionné
+                inline=True,
+                className="custom-check-list"
             ),
         ], className="selection_div"),
+
 
         html.Div([
             html.H2("Télécharger notre fichier source"),
@@ -576,7 +576,6 @@ def update_map_chart(month):
         z=frame['Frequency'],  # Valeurs pour le coloriage
         colorscale=[
             [0.0, "white"],       # Blanc pour 0
-            [0.00001, "lightblue"],  # Transition douce après 0
             [0.5, "blue"],         # Couleurs intermédiaires
             [1.0, "darkblue"]      # Couleurs élevées
         ],
@@ -620,6 +619,7 @@ def update_graph(pays):
     )
     fig.update_layout(title_x=0.5)
     return fig
+
 # Callback pour gérer l'interaction avec les nœuds (au clic)
 @app.callback(
     [Output('network-graph', 'figure'),
@@ -635,7 +635,9 @@ def update_graph(clickData):
                 plot_bgcolor='rgb(30, 30, 30)',  # Fond foncé pour le graphique
                 paper_bgcolor='rgb(255, 255, 255)',  # Fond blanc pour la page
                 showlegend=False,  # Désactive la légende
-                height=600
+                height=600,
+                title_x=0.5,
+                title="Liens entres les différents pays cités"
             )
         ), "Cliquez sur un nœud pour voir les informations."
 
@@ -723,25 +725,25 @@ def update_graph(clickData):
     [Output("graph1-container", "style"),
      Output("graph2-container", "style"),
      Output("graph3-container", "style"),
-     Output("graph4-container", "style"),
-     Output("node-info", "style")],
-    [Input("graph-dropdown", "value")]
+     Output("graph4-container", "style")],
+    [Input("graph-checklist", "value")]
 )
-def display_selected_graph(graph_name):
-    # Cacher tous les graphiques par défaut
-    styles = {'display': 'none'}
+def display_selected_graphs(selected_graphs):
+    # Définir un style par défaut
+    default_style = {'display': 'none', 'width': '100%'}
+    visible_style = {'display': 'block', 'width': '100%','height':'100vh'}
     
-    # Afficher seulement le graphique sélectionné
-    if graph_name == 'graph1':
-        return {'display': 'block', 'height': '90vh'}, {'display': 'none'},{'display': 'none'},{'display': 'none'},{'display': 'none'}
-    elif graph_name == 'graph2':
-        return {'display': 'none'}, {'display': 'block', 'height': '90vh'},{'display': 'none'},{'display': 'none'},{'display': 'none'}
-    elif graph_name == 'graph3':
-        return {'display': 'none'}, {'display': 'none'},{'display': 'block', 'height': '90vh'},{'display': 'none'},{'display': 'block'},
-    elif graph_name == 'graph4':
-        return {'display': 'none'}, {'display': 'none'},{'display': 'none'},{'display': 'block', 'height': '90vh'},{'display': 'none'}
+    # Diviser l'espace en fonction du nombre de graphiques sélectionnés
+    num_graphs = len(selected_graphs)
+    if num_graphs >1:
+        
+        height ="50vh"
+        visible_style = {'display': 'block', 'height': height}
     
-    return styles, styles,styles,styles
+        # Appliquer les styles selon les graphiques sélectionnés
+    styles = [visible_style if f"graph{i+1}" in selected_graphs else default_style for i in range(4)]
+    return styles
+
 
 #callback pour le bouton télécharger le fichier source
 @app.callback(
@@ -754,6 +756,19 @@ def download_file(n_clicks):
     if n_clicks > 0:
         json_data = json.dumps(datadownload, indent=4)
         return dcc.send_string(json_data, "data.json")
+
+from dash.exceptions import PreventUpdate
+
+#callback pour limiter a deux le nombres de graphes affichables en meme temps
+@app.callback(
+    Output("graph-checklist", "value"),
+    [Input("graph-checklist", "value")],
+    prevent_initial_call=True
+)
+def limit_checklist(selected_values):
+    if len(selected_values) > 2:
+        return selected_values[:2]  # Retourne seulement les deux premiers choix
+    return selected_values
 
 # Exécuter l'application
 if __name__ == "__main__":
