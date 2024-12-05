@@ -48,20 +48,16 @@ h1 {
     left: 0;
     top: 0;
     width: 170px;
+    max-height: 100vh;
     height: 100vh;
     background-color: #343a40;
     padding: 20px;
     color: rgb(0, 0, 0);
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
 }
-.selection_div{
-    margin-top: 3em;
-    
-}
-.download_div{
-    margin-top: 10em;
-}
+
 
 
 .sidebar .dash-dropdown {
@@ -79,7 +75,7 @@ h1 {
     text-align: center;
     color: white;
     font-weight: bold;
-    
+    font-size: 26px;
 }
 
 .custom-check-list label{
